@@ -5,4 +5,4 @@ services:
     build: .
     volumes:
       - ./data:/app/data 
-    entrypoint: ["/bin/bash"]
+    entrypoint: ["tail", "-f", "/dev/null"]
