@@ -17,8 +17,12 @@ class Scanner:
     #  sonst ist das Argument -PA21,23,80,3389 quasi nutzlos
     def search_hosts(self):
         for network in self.connected_cidrs:
+            # -n: Keine DNS Auflösung
+            # -sP: Ping Scan
+            # -PA: TCP-ACK-Ping test auf folgende ports
             self.nm.scan(hosts=network, arguments='-n -sP -PE -PA21,23,80,3389')
             for x in self.nm.all_hosts():
+                print(self.nm[x])
                 if self.nm[x]['status']['state'] == "up":
                     self.hosts.append(x)
 
@@ -41,3 +45,10 @@ def _ip2int(addr):
 
 def _int2ip(addr):
     return socket.inet_ntoa(struct.pack("!I", addr))
+
+
+if __name__ == "__main__":
+    scanner = Scanner()
+    print(scanner.connected_cidrs)
+    print("Connected hosts:")
+    print(scanner.hosts)
