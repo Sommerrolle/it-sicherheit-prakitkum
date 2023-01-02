@@ -3,4 +3,4 @@ RUN apt-get update && apt-get -y install nmap
 WORKDIR /app
 COPY . .
 RUN pip install -r requirements.txt
-CMD ["python", "src/portscan.py"]
+CMD ["python", "src/scanner.py"]

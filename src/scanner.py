@@ -10,6 +10,8 @@ from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Pool, Queue
 from collections import ChainMap
 
+from packet import send_packet
+
 
 class Host:
     def __init__(self, ip: str, ports: Optional[list[int]] = None):
@@ -75,7 +77,10 @@ class Scanner:
             print("Starting initial scan...")
             self.search_hosts()
             print(f"Starting Portscans for {len(self.hosts)} targets.")
+            print([h.ip for h in self.hosts])
             self.scan_ports()
+            for host in self.hosts:
+                print(host.ports)
 
     # Todo: Es muss sichergestellt sein, dass das Skript per sudo ausgeführt wird, sonst wird nach Passwort gefragt
     # Scanne die hosts nach offenen ports
@@ -142,7 +147,8 @@ def connect_and_consume_login(ip, port, timeout=1):
 
 def _get_all_cidr():
     ips = []
-    for i in interfaces():
+    for i in ["wlan0"]:
+        print(i)
         try:
             for j in range(0, len(ifaddresses(i)[AF_INET])):
                 if ifaddresses(i)[AF_INET][j]["addr"] != "127.0.0.1":
@@ -161,5 +167,9 @@ def _int2ip(addr):
 
 
 if __name__ == "__main__":
+    send_packet("portscan", "192.168.12.1", "start")
     scanner = Scanner(initial_scan=True)
-    scanner.filter_ports(TelnetFilter)
+    send_packet("portscan", "192.168.12.1", "stop")
+    print(scanner.connected_cidrs)
+    #scanner.filter_ports(TelnetFilter)
+    print(scanner)

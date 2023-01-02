@@ -4,5 +4,13 @@ services:
   attack:
     build: .
     volumes:
-      - ./data:/app/data 
-    entrypoint: ["tail", "-f", "/dev/null"]
+      - ./data:/app/data
+    networks:
+      - attack_network
+
+networks:
+  attack_network:
+    name: attack_network
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-attack
