@@ -1,4 +1,5 @@
 import concurrent.futures
+import os
 import struct
 import socket
 from nmap import PortScanner
@@ -6,6 +7,8 @@ from netifaces import interfaces, ifaddresses, AF_INET
 from typing import Optional
 from telnetlib import Telnet
 from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Pool, Queue
+from collections import ChainMap
 
 
 class Host:
@@ -69,21 +72,27 @@ class Scanner:
         self.nm = PortScanner()
         self.hosts: list[Host] = []
         if initial_scan:
+            print("Starting initial scan...")
             self.search_hosts()
+            print(f"Starting Portscans for {len(self.hosts)} targets.")
             self.scan_ports()
 
-    # Todo: Es muss sichergestellt sein, dass das Skript per sudo ausgeführt wird,
-    #  sonst ist das Argument -PA21,23,80,3389 quasi nutzlos
+    # Todo: Es muss sichergestellt sein, dass das Skript per sudo ausgeführt wird, sonst wird nach Passwort gefragt
     # Scanne die hosts nach offenen ports
     # spec_host Argument ist eher für debugging
-    # todo: AsyncPortScanner verwenden
 
-    def _scan_ports_routine(self, host):
-        res = self.nm.scan(hosts=host.ip, arguments="-p-")
-        print(f"Portscan for {host.ip} done.")
-        for port in res["scan"][host.ip]["tcp"]:
+    def _scan_ports_routine(self, ip):
+        print(f"scanning {ip} [{os.getpid()}] started")
+        nm = PortScanner()
+        res = nm.scan(hosts=ip, arguments="-p- --host-timeout 150 -T5", sudo=True)
+        print(f"Portscan for {ip} done.")
+        try:
+            return {ip: [port for port in res["scan"][ip]["tcp"] if res["scan"][ip]["tcp"][port]["state"] == "open"]}
+        except (KeyError, TypeError):
+            return []
+        '''for port in res["scan"][host.ip]["tcp"]:
             if res["scan"][host.ip]["tcp"][port]["state"] == "open":
-                host.add_port(port)
+                host.add_port(port)'''
 
     def scan_ports(self, spec_host: Optional[str] = None):
         if spec_host is not None:
@@ -96,18 +105,20 @@ class Scanner:
         if len(hosts) == 0:
             print("There are no hosts to portscan. Please search for hosts or specify one.")
             return
-        with ThreadPoolExecutor(10) as executor:
+        with Pool(10) as pool:
+            results = pool.map(self._scan_ports_routine, [host.ip for host in hosts])
+            results = dict(ChainMap(*filter(lambda x: len(x) > 0, results)))
             for host in hosts:
-                executor.submit(self._scan_ports_routine, host)
-            pass
-
+                if host.ip in results:
+                    for port in results[host.ip]:
+                        host.add_port(port)
 
     def search_hosts(self):
         for network in self.connected_cidrs:
             # -n: Keine DNS Auflösung
             # -sP: Ping Scan
             # -PA: TCP-ACK-Ping test auf folgende ports
-            self.nm.scan(hosts=network, arguments='-n -sP -PE -PA21,23,80,3389')
+            self.nm.scan(hosts=network, arguments='-n -sP -PE -PA21,23,80,3389', sudo=True )
             for x in self.nm.all_hosts():
                 if self.nm[x]['status']['state'] == "up":
                     self.hosts.append(Host(x))
@@ -151,6 +162,4 @@ def _int2ip(addr):
 
 if __name__ == "__main__":
     scanner = Scanner(initial_scan=True)
-    print(scanner.connected_cidrs)
     scanner.filter_ports(TelnetFilter)
-    print(scanner)
