@@ -1,2 +1,5 @@
 .idea/
 data/
+src/__init__.py
+src/__pycache__/
+
