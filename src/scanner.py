@@ -167,9 +167,9 @@ def _int2ip(addr):
 
 
 if __name__ == "__main__":
-    send_packet("portscan", "192.168.12.1", "start")
+    send_packet("portscan", "192.168.12.110", "start")
     scanner = Scanner(initial_scan=True)
-    send_packet("portscan", "192.168.12.1", "stop")
+    send_packet("portscan", "192.168.12.110", "stop")
     print(scanner.connected_cidrs)
     #scanner.filter_ports(TelnetFilter)
     print(scanner)

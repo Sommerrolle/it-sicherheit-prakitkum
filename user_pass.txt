@@ -1,5 +1,8 @@
-root:calvin
-administrator:password
+admin admin
+admin 000000
+user user
+root calvin
+administrator password
 NetLinx password
 administrator Amx1234!
 amx password

