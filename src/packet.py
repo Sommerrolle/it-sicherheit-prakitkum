@@ -5,12 +5,13 @@ from scapy import all as scapy
 from scapy.all import IP, ICMP, UDP, Raw
 
 
+SENDER_IP = '192.168.12.110'
+
 # type soll Start und Stop sein
 def create_json_payload(attack: str, target: str, typ: str):
     payload = {
         "attack": attack,
         "target": target,
-        "MAC": "E4:A7:87:F9:89:1B",
         "type": typ,
         "time": int(datetime.now().timestamp())
     }
@@ -19,9 +20,9 @@ def create_json_payload(attack: str, target: str, typ: str):
 # scapy send braucht sudo-Rechte
 def send_packet(attack: str, target: str, typ: str):
     payload = create_json_payload(attack, target, typ)
-    packet = IP(src='192.168.12.110', dst=target)/ICMP()/payload
-    packet.show()
+    packet = IP(src=SENDER_IP, dst=target)/ICMP()/payload
     scapy.send(packet)
+    print(f"Sent {typ} package for attack: {attack} from {SENDER_IP} to {target}")
 
 
 def get_ip_address():
