@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import netifaces as ni
 import socket
 from scapy import all as scapy
 from scapy.all import IP, UDP, Raw
@@ -19,18 +20,17 @@ def create_json_payload(attack: str, target: str, typ: str, mac: str):
 # scapy send braucht sudo-Rechte
 def send_packet(attack: str, target: str, typ: str, mac: str):
     payload = create_json_payload(attack, target, typ, mac)
-    packet = IP(src='192.168.12.110', dst=target)/UDP()/payload
+    packet = IP(src=get_ip_address(), dst=target)/UDP()/payload
     packet.show()
     scapy.send(packet)
 
-
+# Return ip address of the wlan0 interface
 def get_ip_address():
-    hostname = socket.gethostname()
-    return socket.gethostbyname(hostname)
+    return ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr']
 
 
 if __name__ == "__main__":
     send_packet("nmap", "192.168.12.1", "start")
     send_packet("nmap", "192.168.12.1", "stop")
-    #sudoprint(get_ip_address)
+
 

