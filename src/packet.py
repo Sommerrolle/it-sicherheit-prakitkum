@@ -36,7 +36,7 @@ def send_packet(attack: str, target: str, typ: str, mac: str) -> None:
     :param mac: MAC address of the target
     """
     payload = create_json_payload(attack, target, typ, mac)
-    packet = IP(src=get_ip_address(), dst=target)/UDP()/payload
+    packet = IP(src=get_ip_address(), dst=target)/UDP(sport=1234, dport=1234)/payload
     packet.show()
     scapy.send(packet)
 

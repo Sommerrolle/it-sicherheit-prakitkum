@@ -16,6 +16,7 @@ Gruppenmitglieder:
   * [netifaces](https://pypi.org/project/netifaces/)>=0.11.0
   * [pymetasploit3](https://pypi.org/project/pymetasploit3/)>=1.0.3
   * [pyshark](https://pypi.org/project/pyshark/)>=0.5.3
+  * scapy
 
 Die Python Packages können mit der beiliegenden `requirements.txt` installiert werden:
 
