@@ -7,8 +7,9 @@ send_packet("hostscan", "192.168.12.1", "start", "04:cf:4b:3b:00:38")
 scanner.search_hosts()
 send_packet("hostscan", "192.168.12.1", "stop", "04:cf:4b:3b:00:38")
 
+
 connected_ips = [(host.ip, host.mac) for host in scanner.hosts if host.mac]
-print(f"Found connected devices with this ip addresses: {connected_ips}")
+print(f"Found connected devices with these ip addresses: {connected_ips}")
 
 metasploit = Metasploit()
 for connected_ip in connected_ips:

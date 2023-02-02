@@ -45,7 +45,6 @@ class Filter:
 
 
 # Filtert schnell die Ports eines gegebenen Hosts nach Telnet-Logins
-# todo: gibt es auch Telnet Server ohne Logins?
 # todo: könnte zu einem allgemeinem Filter abstrahiert werden der die jeweilige connect&consume Funktion bekommt.
 #  kommt auf Menge an die wir brauchen
 class TelnetFilter(Filter):
@@ -76,7 +75,9 @@ class Scanner:
         self.hosts: list[Host] = []
         if initial_scan:
             print("Starting initial scan...")
+            send_packet("hostscan", "192.168.12.1", "start", "04:cf:4b:3b:00:38")
             self.search_hosts()
+            send_packet("hostscan", "192.168.12.1", "stop", "04:cf:4b:3b:00:38")
             print(f"Starting Portscans for {len(self.hosts)} targets.")
             print([h.ip for h in self.hosts])
             self.scan_ports()
@@ -87,18 +88,17 @@ class Scanner:
     # Scanne die hosts nach offenen ports
     # spec_host Argument ist eher für debugging
 
-    def _scan_ports_routine(self, ip):
-        print(f"scanning {ip} [{os.getpid()}] started")
+    def _scan_ports_routine(self, host):
+        print(f"scanning {host.ip} [{os.getpid()}] started")
         nm = PortScanner()
-        res = nm.scan(hosts=ip, arguments="-p- --host-timeout 150 -T5", sudo=True)
-        print(f"Portscan for {ip} done.")
+        send_packet("tcp_portscan", host.ip, "start", host.mac)
+        res = nm.scan(hosts=host.ip, arguments="-p- --host-timeout 150 -T5", sudo=True)
+        send_packet("tcp_portscan", host.ip, "stop", host.mac)
+        print(f"Portscan for {host.ip} done.")
         try:
             return {ip: [port for port in res["scan"][ip]["tcp"] if res["scan"][ip]["tcp"][port]["state"] == "open"]}
         except (KeyError, TypeError):
             return []
-        '''for port in res["scan"][host.ip]["tcp"]:
-            if res["scan"][host.ip]["tcp"][port]["state"] == "open":
-                host.add_port(port)'''
 
     def scan_ports(self, spec_host: Optional[str] = None):
         if spec_host is not None:
@@ -112,7 +112,7 @@ class Scanner:
             print("There are no hosts to portscan. Please search for hosts or specify one.")
             return
         with Pool(10) as pool:
-            results = pool.map(self._scan_ports_routine, [host.ip for host in hosts])
+            results = pool.map(self._scan_ports_routine, hosts)
             results = dict(ChainMap(*filter(lambda x: len(x) > 0, results)))
             for host in hosts:
                 if host.ip in results:
@@ -133,11 +133,11 @@ class Scanner:
                     else:
                         self.hosts.append(Host(x))
 
-    # todo: vielleicht auch async?
     def filter_ports(self, filter_class: Filter.__class__):
         for host in self.hosts:
+            send_packet("telnet_probe", host.ip, "start", host.mac)
             host.add_filtered_port(filter_class.name, filter_class(host.ip, host.ports, threads=5).filter_ports())
-
+            send_packet("telnet_probe", host.ip, "end", host.mac)
 
 def connect_and_consume_login(ip, port, timeout=1):
     try:

