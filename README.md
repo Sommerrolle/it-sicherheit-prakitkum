@@ -16,6 +16,9 @@ Das vorliegende Projekt beinhaltet ein run-Skript, das nacheinander verschiedene
 
 Hier ist der Aufbau der Angriffe auf die IoT-Geräte im Netzwerk zu sehen. Das Netzwerk wird erst auf verbundene Hosts gescannt. Für jeden Host werden anschließend mit Hilfe von Metasploit Modulen verschiedene Angriffe durchgeführt.
 ## 1.2 Kali Linux
+
+Kali Linux ist eine Open Source, Debian-basierte Linux Distribution, die speziell für IT-Sicherheitsaufgaben wie Penetrations-Tests, Sicherheitsanalyse von IT-Systemen und digitaler Forensik entwickelt wird. Es hat bereits viele Tools, wie Nmap und Metasploit vorinstalliert, weswegen wir uns für diese Distribution für den Angreifer-PC entschieden haben.
+
 ## 1.3 Metasploit
 
 # 2. Installation
@@ -47,7 +50,7 @@ Bevor die Angriffe ausgeführt werden können, muss Metasploit als Deamon gestar
 
 `msfrpcd -P your_password`
 
-Das verwendete Passwort muss in `src/seetings.py` in die Konstante `METASPLOIT_PASSWORD` eingetragen werden
+Das verwendete Passwort muss in `src/settings.py` in die Konstante `METASPLOIT_PASSWORD` eingetragen werden
 
 Anschließend kann das run-Skript kann mit folgendem Befehl aus dem Projektverzeichnis heraus gestartet werden:
 
