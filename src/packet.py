@@ -4,8 +4,7 @@ import netifaces as ni
 from scapy import all as scapy
 from scapy.all import IP, UDP
 
-
-NETWORK_ADAPTER_NAME = "wlan0"
+from settings import NETWORK_ADAPTER_NAME
 
 
 def create_json_payload(attack: str, target: str, typ: str, mac: str) -> str:
@@ -20,7 +19,7 @@ def create_json_payload(attack: str, target: str, typ: str, mac: str) -> str:
     payload = {
         "attack": attack,
         "target": target,
-        "MAC": mac,
+        "mac": mac,
         "type": typ,
         "time": int(datetime.now().timestamp() * 1000)
     }
@@ -45,7 +44,7 @@ class AttackNoticePackets:
     """
     Context manager class to send notice packets befor and after an attack
     """
-    def __init__(self, attack: str, target: str, mac: str = None) -> None:
+    def __init__(self, attack: str, target: str, mac: str | None = None) -> None:
         self.attack = attack
         self.target = target
         if not mac:
