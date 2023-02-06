@@ -3,11 +3,11 @@ import os
 import struct
 import socket
 from nmap import PortScanner
-from netifaces import interfaces, ifaddresses, AF_INET
+from netifaces import ifaddresses, AF_INET
 from typing import Optional
 from telnetlib import Telnet
 from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import Pool, Queue
+from multiprocessing import Pool
 from collections import ChainMap
 
 from packet import send_packet
@@ -96,7 +96,7 @@ class Scanner:
         send_packet("tcp_portscan", host.ip, "stop", host.mac)
         print(f"Portscan for {host.ip} done.")
         try:
-            return {ip: [port for port in res["scan"][ip]["tcp"] if res["scan"][ip]["tcp"][port]["state"] == "open"]}
+            return {host.ip: [port for port in res["scan"][host.ip]["tcp"] if res["scan"][host.ip]["tcp"][port]["state"] == "open"]}
         except (KeyError, TypeError):
             return []
 
