@@ -15,11 +15,46 @@ Das vorliegende Projekt beinhaltet ein run-Skript, das nacheinander verschiedene
 ![Aufbau des Projekts](assets/aufbau_projekt.png)
 
 Hier ist der Aufbau der Angriffe auf die IoT-Geräte im Netzwerk zu sehen. Das Netzwerk wird erst auf verbundene Hosts gescannt. Für jeden Host werden anschließend mit Hilfe von Metasploit Modulen verschiedene Angriffe durchgeführt.
-## 1.2 Kali Linux
 
-Kali Linux ist eine Open Source, Debian-basierte Linux Distribution, die speziell für IT-Sicherheitsaufgaben wie Penetrations-Tests, Sicherheitsanalyse von IT-Systemen und digitaler Forensik entwickelt wird. Es hat bereits viele Tools, wie Nmap und Metasploit vorinstalliert, weswegen wir uns für diese Distribution für den Angreifer-PC entschieden haben.
+## 1.2 Metasploit
 
-## 1.3 Metasploit
+Metasploit ist ein IT-Sicherheitsprojekt, das von Rapid7 entwickelt wird. Es bietet Informationen über Sicherheitslücken und Penetrationstests. Als Teilprojekt wurde das Metasploit-Framework entwickelt, um Exploits entwickeln und ausführen zu können. Die Version 6.2.37 fasst mittlerweile 2278 Exlpoits. Es gibt sieben verschiedene Exploitarten bzw. [Module](https://www.infosecmatter.com/metasploit-module-library/). Für unser Projekt haben wir **Exploits** und **Auxiliary** verwendet:
+
+* **Exploits:** Dient dem Eindringen in ein Zielsystem, indem eine Schwachstelle bzw. ein Programmierfehler ausgenutzt wird (Buffer Overflow, Code Injection, ...)
+* **Auxiliary:** Mit Auxiliarys werden keine Payloads auf dem Zielrechner ausgeführt. Diese dienen eher dazu Informationen über das Zielsystem zu sammeln und potentielle Schwachstellen zu identifizieren
+
+Nützliche Kommandos, um die Metasploit-Konsole zu benutzen:
+
+* Starten der Metasploit-Konsole (Sudo verwenden, da einige Module Admin-Rechte benötigen)
+
+    ```sudo msfconsole```
+
+* **search:** Damit können die Exploits durchsucht werden:
+
+    ```search exploits```
+
+* **info:** Erhalte Informationen über einen bestimmten Exploit (Beschreibung und mögliche Optionen)
+
+    ```info auxiliary/scanner/portscan/tcp```
+
+
+* **use:** Exploit benutzen
+
+    ```use auxiliary/scanner/portscan/tcp```
+
+
+* **options:** Zeige die möglichen Optionen des aktuellen Exploits an
+
+    ```options``` oder ```show options```
+
+* **set:** Setzen einer Option
+
+    ```set RHOSTS 192.168.12.200```
+
+* **run:** Starten des Exploits mit den gesetzten Optionen
+
+    ```run```
+
 
 # 2. Installation
 Benötigte Software:
@@ -71,8 +106,27 @@ Das run-Skript versendet vor und nach jedem Angriff start- und stop-Packete, mit
 Die Angriffsmodule benutzen Metasploit, um Angriffe auf verbundene Geräte im Netzwerk durchzuführen.
 
 ### 4.2.1 TCP-PortScan
+Es wird ein voller TCP Verbidndungsversuch auf alle angegebenen Ports durchgeführt, um nach offenen TCP Services zu suchen. Für dieses Modul werden keine Administrator-Rechte benötigt.
+
+* Modul in Metasploit: ```auxiliary/scanner/portscan/tcp```
+
 ### 4.2.2 Denial-Of-Service (DOS)
+Mit diesem Modul kann eine Denial-of-Service Attacke gestartet werden. Dafür flutet der Angreifer-PC das Zielgerät mit TCP SYN Paketen.
+
+* Modul in Metasploit: ```auxiliary/dos/tcp/synflood```
+
 ### 4.2.3 Wortlisten Angriffe
+Das Modul testet aus einer Datei verschiedene Nutzer-Passwort Kombinationen und gibt erfolgreiche Logins zurück. Das Modul kann auch mit einem Datenbank-Plugin verknüpft werden, um erfolgreiche Logins und die Zielrechner IP-Adresse zu speichern. 
+
+
+| Service      | Modul in Metasploit                   |
+|--------------|---------------------------------------|
+| FTP          | auxiliary/scanner/ftp/ftp_login       |
+| Telnet       | auxiliary/scanner/telnet/telnet_login |
+| SSH          | auxiliary/scanner/ssh/ssh_login       |
+| HTTP         | auxiliary/scanner/http/http_login     |
+
+
 ## 4.3 Klassifizierungs-Pakete
 Um den Netzwerkverkehr, der durch die Scans und Angriffe erzeugt wird, am Access-Point klassifizieren zu können, werden UDP Pakete erzeugt und verschickt, die jeweils den Beginn und das Ende eines Scans oder Angriffs kennzeichnen. Die Pakete beinhalten als Payload einen JSON-kodierten String, der die nötigen Informationen zur Klassifizierung der Netzwerkpakete enthält. Der Payload ist folgendermaßen aufgebaut:
 
@@ -99,9 +153,7 @@ with AttackNoticePackets("new_attack", connected_ip[0], connected_ip[1]):
 
 # Weiterführende Links
 * [Kali Linux](https://www.kali.org/)
+* [Metasploit Documentation](https://docs.metasploit.com/)
 * [Metasploit Module Library](https://www.infosecmatter.com/metasploit-module-library/)
 
-# Feedback
-* Kontextbilder mit reinhauen
-* Diagramm? Acitivity / Flow chart iwas
 
