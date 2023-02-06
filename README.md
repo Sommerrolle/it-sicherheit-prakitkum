@@ -93,7 +93,7 @@ Anschließend kann das run-Skript kann mit folgendem Befehl aus dem Projektverze
 
 Dabei muss das run-Skript mit root-Rechten ausgeführt werden, damit die Bibliotheken die nötigen Rechte für Netzwerkscans und zum Verschicken von Netzwerkpaketen haben.
 
-In der vorliegenden Version werden im run-Skript die in Kapitel 4 beschriebenen Angriffe der Reihe nach ausgeführt. Der Name des Netzwerkadapters, über welche die Angriffe laufen sollen, kann über die Konstante `NETWORK_ADAPTER_NAME` in `src/seetings.py` gesetzt werden und sollte den Namen des Netzwerkadapters, die mit dem Netzwerk verbunden ist, in dem auch die IoT-Geräte verbunden sind, als String beinhalten.
+In der vorliegenden Version werden im run-Skript die in Kapitel 4 beschriebenen Angriffe der Reihe nach ausgeführt. Der Name des Netzwerkadapters, über welche die Angriffe laufen sollen, kann über die Konstante `NETWORK_ADAPTER_NAME` in `src/settings.py` gesetzt werden und sollte den Namen des Netzwerkadapters, die mit dem Netzwerk verbunden ist, in dem auch die IoT-Geräte verbunden sind, als String beinhalten.
 
 Alle Angriffe werden für alle Geräte, die mit dem Netzwerk des angegebenen Netzwerkadapters verbunden sind. Deshalb muss darauf geachtet werden, dass der richtige Netzwerkadapter angegeben wurde und sich in dem Netzwerk nur Geräte befinden, die für Testzwecke angegriffen werden dürfen.
 
@@ -101,7 +101,51 @@ Das run-Skript versendet vor und nach jedem Angriff start- und stop-Packete, mit
 
 # 4. Module
 ## 4.1 Scanner
-### 4.1.1 Nmap-Scan
+Der Scanner ist dafür verantwortlich die Hostscans durchzuführen. Er verwaltet Informationen wie offene Ports, MAC und IP Adressen in der Host Datenklassen.
+
+```python
+class Host:
+    def __init__(self, ip: str, mac: str = "", ports: Optional[list[int]] = None):
+        self.ip: str = ip
+        self.mac: str = mac
+        self.ports = [] if ports is None else ports
+        self.filtered_ports = {"all": self.ports}
+        self.filter_needs_update = False
+        self.new_ports = []
+        
+    def add_filtered_port(self, name: str, ports: list[int]):
+            self.filtered_ports[name] = ports
+```
+Das Scannen und Befüllen der Host Entitäten geschieht automatisch, beim Initialisieren der Klasse (steuerbar über 
+optionalen ```initial_scan``` Parameter) oder über die Methode ```search_hosts()```. Diese durchsucht alle 
+angeschlossenen Netzwerke nach Hosts und legt die Host Objekte an. Diese werden ind er Liste ```Scanner.hosts``` 
+gespeichert. Sollen zusätzlich Portscans durchgeführt werden, kann die ```scan_ports()``` Methode aufgerufen werden. 
+Diese führt Portscans für alle in ```Scanner.hosts``` aufgeführten Hosts durch. 
+
+### 4.1.1 Filter
+Der Scanner kann durch Filter erweitert werden. Diese haben den Zweck Funktionalitäten zu implementieren um Dienste und 
+Services auf Ports zu erkennen. Sie operieren immer auf einem einzelnen Host. Werden Ports mit dem entsprechenden Ports 
+auf dem Host gefunden, sollte ein Filter eine Liste dieser zurückgeben. 
+```python
+class Filter:
+    name = "generic"
+
+    def __init__(self, ip: str, ports: list[int]):
+        pass
+
+    def filter_ports(self):
+        pass
+```
+Spezielle Filter erben von der oben aufgeführten Filter Klasse bzw. müssen einen Namen als Attribut speichern und die 
+```filter_ports()``` Methode implementieren. ```filter_ports()``` gibt als Rückgabewert eine Liste zurück, die die 
+Portnummern enthält, die den gewünschten Dienst aufführt.
+
+Ein Filter kann der ```Scanner.filter_ports()``` Funktion im Scanner als Argument übergeben werden. Nach der Ausführung 
+ist das Dictionary ```Host.filtered_ports``` eines jeden Hosts in ```Scanner.hosts``` um einen Key erweitert, der dem 
+Namen des Filters ```Filter.name``` entspricht. Die Value ist eine Liste der Ports, die den durch den Filter erkannten
+Dienst anbieten. Ein Beispiel für einen Filter ist in der ```TelnetFilter``` Klasse implementiert.
+
+
 ## 4.2 Angriffe
 Die Angriffsmodule benutzen Metasploit, um Angriffe auf verbundene Geräte im Netzwerk durchzuführen.
 

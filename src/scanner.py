@@ -38,7 +38,7 @@ class Host:
 class Filter:
     name = "generic"
 
-    def __init__(self):
+    def __init__(self, ip: str, ports: list[int]):
         pass
 
     def filter_ports(self):
@@ -136,9 +136,7 @@ class Scanner:
 
     def filter_ports(self, filter_class: Filter.__class__):
         for host in self.hosts:
-            send_packet("telnet_probe", host.ip, "start", host.mac)
             host.add_filtered_port(filter_class.name, filter_class(host.ip, host.ports, threads=5).filter_ports())
-            send_packet("telnet_probe", host.ip, "end", host.mac)
 
 def connect_and_consume_login(ip, port, timeout=1):
     try:
