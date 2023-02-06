@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from collections import ChainMap
 
 from packet import send_packet
+from settings import NETWORK_ADAPTER_NAME
 
 
 class Host:
@@ -152,7 +153,7 @@ def connect_and_consume_login(ip, port, timeout=1):
 
 def _get_all_cidr():
     ips = []
-    for i in ["wlan0"]:
+    for i in [NETWORK_ADAPTER_NAME]:
         print(i)
         try:
             for j in range(0, len(ifaddresses(i)[AF_INET])):

