@@ -143,7 +143,7 @@ Im Feld `attack` steht der Name der ausgeführten Attacke. In den Feldern `targe
 
 Im run-Skript werden die start- und stop-Pakete über den Kontextmanager `AttackNoticePackets` eingebunden, der  als Argumente den Namen des Angriffs, die IP-Adresse (bei Angriffen ohne konkretes Ziel steht hier die IP-Adresse des Access-Points) des Ziels und die MAC-Adresse des Ziels (wenn dieses Argument leer ist, wird die MAC-Adresse des angreifenden Rechners benutzt; z.B. bei Netzwerkscans, die kein eindeutiges Ziel haben) übergeben bekommt.
 
-# 5 Neue Angriffe
+# 5. Neue Angriffe
 Um einen neuen Angriff ins run-Skript einzubinden, kann die Funktion, die den Angriff triggert, an einer sinnvollen Stelle hinzugefügt werden. Dabei sollte vorher die Klasse `AttackNoticePackets` initialisiert werden, damit die nötigen start- und stop-Pakete korrekt versendet werden. Folgendes Beispiel zeigt, wie ein neuer Angriff auf einen verbundenen Host ins run-Skript eingefügt werden kann:
 
 ```python
